@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sri Lanka Vehicle Import Tax Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+      font-weight: 600;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 20px;
+      color: #555;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 30px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 30px;
+      background-color: #f9fdf9;
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid #d9f2d9;
+    }
+    .result h2 {
+      margin-top: 0;
+      color: #28a745;
+    }
+    .result p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vehicle Import Tax Calculator 🇱🇰</h1>
+
+    <label for="cifUsd">CIF Value (USD)</label>
+    <input type="number" id="cifUsd" placeholder="e.g., 10000" />
+
+    <label for="exchangeRate">Exchange Rate (LKR/USD)</label>
+    <input type="number" id="exchangeRate" value="300" />
+
+    <label for="fuelType">Fuel Type</label>
+    <select id="fuelType">
+      <option value="petrol">Petrol</option>
+      <option value="diesel">Diesel</option>
+      <option value="petrolHybrid">Petrol Hybrid</option>
+      <option value="dieselHybrid">Diesel Hybrid</option>
+      <option value="plugInHybridPetrol">Plug-in Hybrid (Petrol)</option>
+      <option value="plugInHybridDiesel">Plug-in Hybrid (Diesel)</option>
+      <option value="electric">Electric</option>
+    </select>
+
+    <label for="engineCapacity">Engine Capacity (CC or KW)</label>
+    <input type="number" id="engineCapacity" placeholder="e.g., 1500 or 100" />
+
+    <button onclick="calculateTaxes()">💰 Calculate Taxes</button>
+
+    <div class="result" id="result" style="display: none">
+      <h2>🧾 Breakdown</h2>
+      <p id="cifLkr"></p>
+      <p id="cid"></p>
+      <p id="surcharge"></p>
+      <p id="pal"></p>
+      <p id="exciseDuty"></p>
+      <p id="luxuryTax"></p>
+      <p id="vat"></p>
+      <p id="totalCost"></p>
+    </div>
+  </div>
+
+  <script>
+    function formatNumber(num) {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function calculateTaxes() {
+      const cifUsd = parseFloat(document.getElementById("cifUsd").value);
+      const exchangeRate = parseFloat(document.getElementById("exchangeRate").value);
+      const fuelType = document.getElementById("fuelType").value;
+      const engineCapacity = parseFloat(document.getElementById("engineCapacity").value);
+
+      if (isNaN(cifUsd) || isNaN(exchangeRate) || isNaN(engineCapacity)) {
+        alert("Please enter valid numbers for all fields.");
+        return;
+      }
+
+      const cifLkr = cifUsd * exchangeRate;
+      const cid = cifLkr * 0.20;
+      const surcharge = cid * 0.50;
+      const pal = cifLkr * 0.10;
+
+      let exciseRatePerUnit = 0;
+      switch (fuelType) {
+        case "petrol": exciseRatePerUnit = 4000; break;
+        case "diesel": exciseRatePerUnit = 4500; break;
+        case "petrolHybrid": exciseRatePerUnit = 3000; break;
+        case "dieselHybrid": exciseRatePerUnit = 3500; break;
+        case "plugInHybridPetrol": exciseRatePerUnit = 2500; break;
+        case "plugInHybridDiesel": exciseRatePerUnit = 3000; break;
+        case "electric": exciseRatePerUnit = 2000; break;
+      }
+
+      const exciseDuty = engineCapacity * exciseRatePerUnit;
+
+      let luxuryThreshold = 0;
+      let luxuryRate = 0;
+      switch (fuelType) {
+        case "petrol": luxuryThreshold = 5000000; luxuryRate = 1.00; break;
+        case "diesel": luxuryThreshold = 5000000; luxuryRate = 1.20; break;
+        case "petrolHybrid": luxuryThreshold = 5500000; luxuryRate = 0.80; break;
+        case "dieselHybrid": luxuryThreshold = 5500000; luxuryRate = 0.90; break;
+        case "plugInHybridPetrol": luxuryThreshold = 6000000; luxuryRate = 0.80; break;
+        case "plugInHybridDiesel": luxuryThreshold = 6000000; luxuryRate = 0.90; break;
+        case "electric": luxuryThreshold = 10000000; luxuryRate = 0.75; break;
+      }
+
+      let luxuryTax = 0;
+      if (cifLkr > luxuryThreshold) {
+        luxuryTax = (cifLkr - luxuryThreshold) * luxuryRate;
+      }
+
+      const vatBase = cifLkr + cid + surcharge + pal + exciseDuty + luxuryTax;
+      const vat = vatBase * 0.15;
+      const totalCost = vatBase + vat;
+
+      document.getElementById("cifLkr").innerText = `CIF Value (LKR): LKR ${formatNumber(cifLkr)}`;
+      document.getElementById("cid").innerText = `Customs Import Duty (20%): LKR ${formatNumber(cid)}`;
+      document.getElementById("surcharge").innerText = `Surcharge (50% of CID): LKR ${formatNumber(surcharge)}`;
+      document.getElementById("pal").innerText = `Port & Airport Levy (10%): LKR ${formatNumber(pal)}`;
+      document.getElementById("exciseDuty").innerText = `Excise Duty: LKR ${formatNumber(exciseDuty)}`;
+      document.getElementById("luxuryTax").innerText = luxuryTax > 0 ? `Luxury Tax: LKR ${formatNumber(luxuryTax)}` : 'Luxury Tax: Not Applicable';
+      document.getElementById("vat").innerText = `VAT (15%): LKR ${formatNumber(vat)}`;
+      document.getElementById("totalCost").innerText = `Total Import Cost: LKR ${formatNumber(totalCost)}`;
+
+      document.getElementById("result").style.display = "block";
+    }
+  </script>
+</body>
+</html>
